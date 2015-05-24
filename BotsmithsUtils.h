@@ -520,7 +520,7 @@ public:
 	}
 };
 
-///@brief Manages options for controllers, such as whether or not the Y axis should be inverted, axis sensitivity, etc.
+///@brief Wraps options for controllers, such as whether or not the Y axis should be inverted, axis sensitivity, etc.
 class ControllerOptions
 {
 public:
