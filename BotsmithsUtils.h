@@ -1,6 +1,9 @@
-b//==========================================================================================================================================
-//Botsmiths Single Header Utility Library (tentative title while I think of a cool acronym)
+//==========================================================================================================================================
+//Copyright (C) 2015 The Botsmiths: FRC Team 4309
+//Author(s): Tanner Mickelson (supertanner@gmail.com)
+//License: GNU GPLv2 see LICENSE file for full text.
 //
+//Botsmiths Single Header Utility Library (tentative title while I think of a cool acronym)
 //The Botsmiths Single Header Utility Library is a collection of useful extensions and utilities built around WPILib.
 //
 //Contents (comment blocks are placed to facilitate searching to find parts of the code quickly):
