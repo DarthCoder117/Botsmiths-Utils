@@ -4,6 +4,7 @@ b//=============================================================================
 //The Botsmiths Single Header Utility Library is a collection of useful extensions and utilities built around WPILib.
 //
 //Contents (comment blocks are placed to facilitate searching to find parts of the code quickly):
+//	*Math Utilities
 //	*Distance Measurement
 //	*Controllers/Joysticks
 //
@@ -11,9 +12,102 @@ b//=============================================================================
 #ifndef BOTSMITHS_UTILS_H
 #define BOTSMITHS_UTILS_H
 #include "WPILib.h"
+#include <cmath>
 
 #define BOTSMITHS_UTILS_VERSION_MAJOR 1
 #define BOTSMITHS_UTILS_VERSION_MINOR 0
+
+//==========================================================================================================================================
+//Math Utilities
+//==========================================================================================================================================
+
+#define PI 3.14159265f
+
+///@brief Contains useful common math utility functions.
+class Math
+{
+public:
+
+	///@brief Linear interpolation.
+	static float Lerp(float v0, float v1, float t)
+	{
+		return (1 - t)*v0 + t*v1;
+	}
+
+	static double Lerp(double v0, double v1, double t)
+	{
+		return (1 - t)*v0 + t*v1;
+	}
+};
+
+///@brief 2D vector class for vector math.
+template <typename T>
+class Vector2T
+{
+public:
+
+	Vector2T()
+		:x(0),
+		y(0)
+	{}
+
+	Vector2T(T xVal, T yYval)
+		:x(xVal),
+		y(yVal)
+	{}
+
+	Vector2T(const Vector2T& oth)
+		:x(oth.x),
+		y(oth.y)
+	{}
+
+	T x;///< X coordinate of vector
+	T y;///< Y coordinate of vector
+
+	///@return The length of this vector. Also referred to as the magnitude of the vector.
+	T Length()
+	{
+		return std::sqrt(x*x + y*y);
+	}
+
+	///@return The squared length of this vector. Calculating squared length is faster than calculating length, so if you can use squared length it's better.
+	T SquaredLength()
+	{
+		return x*x + y*y;
+	}
+
+	///@brief Normalizes the vector to length 1.0
+	Vector2T& Normalize()
+	{
+		T len = length();
+
+		x /= len;
+		y /= len;
+
+		return *this;
+	}
+
+	///@brief Multiply by scalar to scale the vector's length.
+	Vector2T operator * (T scalar)
+	{
+		return Vector2T(x * scalar, y * scalar);
+	}
+
+	///@brief Add two vectors
+	Vector2T operator + (const Vector2T& oth)
+	{
+		return Vector2T(x + oth.x, y + oth.y);
+	}
+
+	///@brief Subtract two vectors
+	Vector2T operator - (const Vector2T& oth)
+	{
+		return (*this)+((-1)*oth);
+	}
+};
+
+typedef Vector2T<float> Vector2;
+typedef Vector2T<double> DoubleVector2;
 
 //==========================================================================================================================================
 //Distance Measurement
@@ -172,11 +266,25 @@ public:
 	virtual float GetLeftStickX() = 0;
 	///@return The value of the left stick's Y (up/down) axis.
 	virtual float GetLeftStickY() = 0;
+	///@return The left stick as a normalized vector. This is INCREDIBLY useful for calculating deadzones because you can base the deadzone on the vector length.
+	virtual Vector2 GetLeftStick()
+	{
+		Vector2 stickVal(GetLeftStickX(), GetLeftStickY());
+		stickVal.Normalize();
+		return stickVal;
+	}
 
 	///@return The value of the right stick's X (left/right) axis.
 	virtual float GetRightStickX() = 0;
 	///@return The value of the right stick's Y (up/down) axis.
 	virtual float GetRightStickY() = 0;
+	///@return The right stick as a normalized vector. This is INCREDIBLY useful for calculating deadzones because you can base the deadzone on the vector length.
+	virtual Vector2 GetRightStick()
+	{
+		Vector2 stickVal(GetRightStickX(), GetRightStickY());
+		stickVal.Normalize();
+		return stickVal;
+	}
 
 	///@return Returns the D-Pad X value (left/right). This will return 0 if the D-Pad is not pressed, and will return positive for right, and negative for left.
 	virtual short GetDPadX() = 0;
