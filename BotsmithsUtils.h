@@ -10,6 +10,7 @@
 //	*Math Utilities
 //	*Distance Measurement
 //	*Controllers/Joysticks
+//	*IR Proximity Sensors
 //
 //==========================================================================================================================================
 #ifndef BOTSMITHS_UTILS_H
@@ -40,6 +41,17 @@ public:
 	static double Lerp(double v0, double v1, double t)
 	{
 		return (1 - t)*v0 + t*v1;
+	}
+	
+	///@brief Scales a value to be normalized between 0 and 1 given the range of values it can take. 
+	static float Normalize(float value, float min, float max)
+	{
+		return (value - min) / (max - min);
+	}
+	
+	static double Normalize(double value, double min, double max)
+	{
+		return (value - min) / (max - min);
 	}
 };
 
@@ -647,6 +659,68 @@ public:
 	{
 		return Preferences::GetInstance()->GetFloat("Controller " + itoa(controllerNum) + "Sensitivity", 1.0f);
 	}
+};
+
+//==========================================================================================================================================
+//IR Proximity Sensors
+//==========================================================================================================================================
+
+///@brief Proximity sensor interface for Sharp infrared proximity sensors.
+class ProximitySensor : public PIDSource
+{
+public:
+	
+	///@return The maximum distance that this sensor can read (in cm).
+	virtual double GetMaxRange()=0;
+	///@return The minimum distance that this sensor can read (in cm).
+	virtual double GetMinRange()=0;
+	
+	///@return Returns the current distance in front of the proximity sensor (in cm).
+	virtual double GetDistance()=0;
+	
+	virtual double PIDGet(){return GetDistance();}
+};
+
+///@brief Infrared Proximity Sensor Short Range - Sharp GP2Y0A41SK0F 
+///https://www.sparkfun.com/products/12728
+class ShortRangeProximitySensor : public PIDSource
+{
+public:
+	
+	ShortRangeProximitySensor(unsigned int analogChannel)
+		:m_analogInput(analogChannel)
+	{
+		m_rangeLookup = 
+		{
+			//TODO: Build lookup table from sensor data sheet (or just self measure distances)
+		};
+	}
+	
+	virtual double GetMaxRange()
+	{
+		return 30.0;
+	}
+	virtual double GetMinRange()
+	{
+		return 4.0;
+	}
+	
+	///@todo Improve smoothness of range finder value by interpolating values. 
+	virtual double GetDistance()
+	{
+		float voltage = m_analogInput->GetVoltage();
+		voltage = Math::Normalize(voltage, 0.3f, 3.1f);//Normalize the voltage to a usable value.
+		
+		int lookupIdx = std::floor(voltage*16);
+		
+		return m_rangeLookup[lookupIdx];
+	}
+	
+private:
+	
+	double m_rangeLookup[16];
+	
+	AnalogInput m_analogInput;
 };
 
 #endif
