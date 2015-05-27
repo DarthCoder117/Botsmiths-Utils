@@ -33,25 +33,33 @@ class Math
 public:
 
 	///@brief Linear interpolation.
-	static float Lerp(float v0, float v1, float t)
+	template <typename T>
+	static T Lerp(T v0, T v1, T t)
 	{
 		return (1 - t)*v0 + t*v1;
 	}
 
-	static double Lerp(double v0, double v1, double t)
-	{
-		return (1 - t)*v0 + t*v1;
-	}
-	
 	///@brief Scales a value to be normalized between 0 and 1 given the range of values it can take. 
-	static float Normalize(float value, float min, float max)
+	template <typename T>
+	static T Normalize(T value, T min, T max)
 	{
 		return (value - min) / (max - min);
 	}
 	
-	static double Normalize(double value, double min, double max)
+	///@brief Clamps a number between a maximum and minimum value.
+	template <typename T>
+	static T Clamp(T value, T min, T max)
 	{
-		return (value - min) / (max - min);
+		if ( value < min )
+		{
+			value = min;
+		}
+		else if ( value > max )
+		{
+			value = max;
+		}
+	
+		return value;
 	}
 };
 
@@ -681,18 +689,18 @@ public:
 	virtual double PIDGet(){return GetDistance();}
 };
 
-///@brief Infrared Proximity Sensor Short Range - Sharp GP2Y0A41SK0F 
-///https://www.sparkfun.com/products/12728
-class ShortRangeProximitySensor : public PIDSource
+///@brief Infrared Proximity Sensor - Sharp GP2Y0A21YK 
+///https://www.sparkfun.com/products/242
+class MidRangeProximitySensor : public PIDSource
 {
 public:
 	
-	ShortRangeProximitySensor(unsigned int analogChannel)
+	MidRangeProximitySensor(unsigned int analogChannel)
 		:m_analogInput(analogChannel)
 	{
 		m_rangeLookup = 
 		{
-			//TODO: Build lookup table from sensor data sheet (or just self measure distances)
+			
 		};
 	}
 	
@@ -711,9 +719,19 @@ public:
 		float voltage = m_analogInput->GetVoltage();
 		voltage = Math::Normalize(voltage, 0.3f, 3.1f);//Normalize the voltage to a usable value.
 		
-		int lookupIdx = std::floor(voltage*16);
+		int lookupIdxLow = std::floor(voltage*16.0f);
+		int lookupIdxHigh = std::ceil(voltage*16.0f);
 		
-		return m_rangeLookup[lookupIdx];
+		lookupIdxLow = Math::Clamp(lookupIdxLow, 0, 16);
+		lookupIdxHigh = Math::Clamp(lookupIdxHigh, 0, 16);
+		
+		double resultLow = m_rangeLookup(lookupIdxLow);
+		double resultHigh = m_rangeLookup(lookupIdxHigh);
+		
+		//Interpolate between underestimate and overestimate
+		double result = Math::Lerp(resultLow, resultHigh, ((double)voltage*16.0)-((double)lookupIdxLow));
+		
+		return result;
 	}
 	
 private:
