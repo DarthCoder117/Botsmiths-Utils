@@ -132,6 +132,80 @@ public:
 typedef Vector2T<float> Vector2;
 typedef Vector2T<double> DoubleVector2;
 
+///@brief 3D vector class for vector math.
+template <typename T>
+class Vector3T
+{
+public:
+
+	Vector3T()
+		:x(0),
+		y(0),
+		z(0)
+	{}
+
+	Vector3T(T xVal, T yVal, T zVal)
+		:x(xVal),
+		y(yVal),
+		z(zVal)
+	{}
+
+	Vector2T(const Vector2T& oth)
+		:x(oth.x),
+		y(oth.y),
+		z(oth.z)
+	{}
+
+	T x;///< X coordinate of vector
+	T y;///< Y coordinate of vector
+	T z;///< Z coordinate of vector
+
+	///@return The length of this vector. Also referred to as the magnitude of the vector.
+	T Length()
+	{
+		return std::sqrt(x*x + y*y + z*z);
+	}
+
+	///@return The squared length of this vector. Calculating squared length is faster than calculating length, so if you can use squared length it's better.
+	T SquaredLength()
+	{
+		return x*x + y*y + z*z;
+	}
+
+	///@brief Normalizes the vector to length 1.0
+	Vector3T& Normalize()
+	{
+		T len = length();
+
+		x /= len;
+		y /= len;
+		z /= len;
+
+		return *this;
+	}
+
+	///@brief Multiply by scalar to scale the vector's length.
+	Vector3T operator * (T scalar)
+	{
+		return Vector3T(x * scalar, y * scalar, z * scalar);
+	}
+
+	///@brief Add two vectors
+	Vector3T operator + (const Vector3T& oth)
+	{
+		return Vector3T(x + oth.x, y + oth.y, z + oth.z);
+	}
+
+	///@brief Subtract two vectors
+	Vector3T operator - (const Vector3T& oth)
+	{
+		return (*this) + ((-1)*oth);
+	}
+};
+
+typedef Vector3T<float> Vector3;
+typedef Vector3T<double> DoubleVector3;
+
 //==========================================================================================================================================
 //Distance Measurement
 //==========================================================================================================================================
