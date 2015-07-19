@@ -16,7 +16,11 @@
 #ifndef BOTSMITHS_UTILS_H
 #define BOTSMITHS_UTILS_H
 #include "WPILib.h"
+
+//Standard library includes likely to be used in robot code
 #include <cmath>
+#include <string>
+#include <vector>
 
 #define BOTSMITHS_UTILS_VERSION_MAJOR 1
 #define BOTSMITHS_UTILS_VERSION_MINOR 0
@@ -765,54 +769,48 @@ public:
 
 ///@brief Infrared Proximity Sensor - Sharp GP2Y0A21YK 
 ///https://www.sparkfun.com/products/242
-class MidRangeProximitySensor : public PIDSource
+template <int LOOKUP_TABLE_SIZE>
+class ProximitySensor : public PIDSource
 {
 public:
 	
-	MidRangeProximitySensor(unsigned int analogChannel)
-		:m_analogInput(analogChannel)
+	ProximitySensor(unsigned int analogChannel)
+		:m_analogInput(analogChannel),
+		m_maxVoltage(3.1f),
+		m_minVoltage(0.3f)
 	{
-		m_rangeLookup = 
-		{
-			
-		};
+		
 	}
 	
-	virtual double GetMaxRange()
-	{
-		return 30.0;
-	}
-	virtual double GetMinRange()
-	{
-		return 4.0;
-	}
-	
-	///@todo Improve smoothness of range finder value by interpolating values. 
-	virtual double GetDistance()
+	///@return The distance in front of the range finder.
+	float GetDistance()
 	{
 		float voltage = m_analogInput->GetVoltage();
-		voltage = Math::Normalize(voltage, 0.3f, 3.1f);//Normalize the voltage to a usable value.
+		voltage = Math::Normalize(voltage, m_minVoltage, m_maxVoltage);//Normalize the voltage to a usable value.
 		
-		int lookupIdxLow = std::floor(voltage*16.0f);
-		int lookupIdxHigh = std::ceil(voltage*16.0f);
+		int lookupIdxLow = std::floor(voltage*(float)LOOKUP_TABLE_SIZE);
+		int lookupIdxHigh = std::ceil(voltage*(float)LOOKUP_TABLE_SIZE);
 		
-		lookupIdxLow = Math::Clamp(lookupIdxLow, 0, 16);
-		lookupIdxHigh = Math::Clamp(lookupIdxHigh, 0, 16);
+		lookupIdxLow = Math::Clamp(lookupIdxLow, 0, LOOKUP_TABLE_SIZE);
+		lookupIdxHigh = Math::Clamp(lookupIdxHigh, 0, LOOKUP_TABLE_SIZE);
 		
-		double resultLow = m_rangeLookup(lookupIdxLow);
-		double resultHigh = m_rangeLookup(lookupIdxHigh);
+		float resultLow = m_rangeLookup(lookupIdxLow);
+		float resultHigh = m_rangeLookup(lookupIdxHigh);
 		
 		//Interpolate between underestimate and overestimate
-		double result = Math::Lerp(resultLow, resultHigh, ((double)voltage*16.0)-((double)lookupIdxLow));
+		float result = Math::Lerp(resultLow, resultHigh, (voltage*((float)LOOKUP_TABLE_SIZE-(float)lookupIdxLow));
 		
 		return result;
 	}
 	
-private:
+protected:
 	
-	double m_rangeLookup[16];
+	float m_rangeLookup[LOOKUP_TABLE_SIZE];
 	
 	AnalogInput m_analogInput;
+	
+	float m_maxVoltage;
+	float m_minVoltage;
 };
 
 #endif
