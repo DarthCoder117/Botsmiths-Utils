@@ -217,6 +217,7 @@ typedef Vector3T<double> DoubleVector3;
 ///@brief The MovementTracker uses the double integration method to track how far the robot has moved using the accelerometer.
 ///Tracking movement with the accelerometer is not very accurate, so it's important to use it only for moving short distances.
 ///Resetting the movement tracker once you've reached a known position can be very helpful too.
+///The movement tracker is not started automatically, to start tracking movement use the StartTracking method. 
 class MovementTracker
 {
 public:
@@ -228,16 +229,49 @@ public:
 		m_velocityY(0.0),
 		m_positionY(0.0),
 		m_velocityZ(0.0),
-		m_positionZ(0.0)
+		m_positionZ(0.0),
+		m_command(NULL)
 	{
-		m_command = new TrackerCommand(this);
-		m_command->Start();
+		
 	}
 
 	~MovementTracker()
 	{
-		m_command->Cancel();
 		delete m_command;
+	}
+
+	///@brief Starts tracking movement.
+	void StartTracking()
+	{
+		if (!m_command)
+		{
+			m_command = new TrackerCommand(this);
+		}
+
+		m_command->Start();
+	}
+
+	///@brief Stops tracking movement.
+	///@param resetTracking Whether or not to reset the tracking when it stops.
+	void StopTracking(bool resetTracking = false)
+	{
+		m_command->Cancel();
+
+		if (resetTracking)
+		{
+			Reset();
+		}
+	}
+
+	///@brief Resets tracked position and velocity. This should only be used when fully stopped.
+	void Reset()
+	{
+		m_velocityX = 0.0;
+		m_positionX = 0.0;
+		m_velocityY = 0.0;
+		m_positionY = 0.0;
+		m_velocityZ = 0.0;
+		m_positionZ = 0.0;
 	}
 
 	///@return The velocity in the X direction.
