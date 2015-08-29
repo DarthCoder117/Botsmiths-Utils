@@ -20,6 +20,7 @@
 //Standard library includes likely to be used in robot code
 #include <cmath>
 #include <string>
+#include <sstream>
 #include <vector>
 
 #define BOTSMITHS_UTILS_VERSION_MAJOR 1
@@ -131,6 +132,14 @@ public:
 	{
 		return (*this)+((-1)*oth);
 	}
+
+	///@brief Converts the vector to a printable string for debugging.
+	std::string ToString()
+	{
+		std::stringstream ss;
+		ss << "(" << x << ", " << y << ", " << ")";
+		return ss.str();
+	}
 };
 
 typedef Vector2T<float> Vector2;
@@ -204,6 +213,14 @@ public:
 	Vector3T operator - (const Vector3T& oth)
 	{
 		return (*this) + ((-1)*oth);
+	}
+
+	///@brief Converts the vector to a printable string for debugging.
+	std::string ToString()
+	{
+		std::stringstream ss;
+		ss << "(" << x << ", " << y << ", " << z << ")";
+		return ss.str();
 	}
 };
 
@@ -490,7 +507,7 @@ public:
 	static const int X_BUTTON = 3;
 	static const int Y_BUTTON = 4;
 
-	XboxController(uint32_t port, float deadZone = 0.05f)
+	XboxController(uint32_t port, float deadZone = 0.1f)
 		:GameController(port, deadZone)
 	{}
 
