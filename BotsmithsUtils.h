@@ -380,10 +380,13 @@ private:
 ///@todo Add JoystickButton command creation utility methods.
 class GameController : public Joystick
 {
+	float m_deadZone;
+
 public:
 
-	GameController(uint32_t port)
-		:Joystick(port)
+	GameController(uint32_t port, float deadZone)
+		:Joystick(port),
+		m_deadZone(deadZone)
 	{}
 
 	///@return True if the left trigger button on the controller is pressed, false otherwise.
@@ -409,6 +412,12 @@ public:
 	virtual Vector2 GetLeftStick()
 	{
 		Vector2 stickVal(GetLeftStickX(), GetLeftStickY());
+
+		if (stickVal.Length() <= m_deadZone)
+		{
+			return Vector2(0.0f, 0.0f);
+		}
+
 		stickVal.Normalize();
 		return stickVal;
 	}
@@ -421,6 +430,12 @@ public:
 	virtual Vector2 GetRightStick()
 	{
 		Vector2 stickVal(GetRightStickX(), GetRightStickY());
+
+		if (stickVal.Length() <= m_deadZone)
+		{
+			return Vector2(0.0f, 0.0f);
+		}
+
 		stickVal.Normalize();
 		return stickVal;
 	}
@@ -462,21 +477,21 @@ public:
 
 	static const int LEFT_TRIGGER = 2;
 	static const int RIGHT_TRIGGER = 3;
-	static const int LEFT_BUMPER = 4;
-	static const int RIGHT_BUMPER = 5;
-	static const int RIGHT_STICK_BUTTON = 9;
-	static const int LEFT_STICK_BUTTON = 8;
+	static const int LEFT_BUMPER = 5;
+	static const int RIGHT_BUMPER = 6;
+	static const int RIGHT_STICK_BUTTON = 10;
+	static const int LEFT_STICK_BUTTON = 9;
 	static const int LEFT_STICK_X = 0;
 	static const int LEFT_STICK_Y = 1;
 	static const int RIGHT_STICK_X = 4;
 	static const int RIGHT_STICK_Y = 5;
-	static const int A_BUTTON = 0;
-	static const int B_BUTTON = 1;
-	static const int X_BUTTON = 2;
-	static const int Y_BUTTON = 3;
+	static const int A_BUTTON = 1;
+	static const int B_BUTTON = 2;
+	static const int X_BUTTON = 3;
+	static const int Y_BUTTON = 4;
 
-	XboxController(uint32_t port)
-		:GameController(port)
+	XboxController(uint32_t port, float deadZone = 0.05f)
+		:GameController(port, deadZone)
 	{}
 
 	virtual bool GetLeftTrigger()
@@ -600,8 +615,8 @@ public:
 	static const int X_BUTTON = 3;
 	static const int Y_BUTTON = 4;
 
-	LogitechF310Controller(uint32_t port)
-		:GameController(port)
+	LogitechF310Controller(uint32_t port, float deadZone = 0.05f)
+		:GameController(port, deadZone)
 	{}
 
 	virtual bool GetLeftTrigger()
