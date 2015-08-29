@@ -838,10 +838,11 @@ class SpeedControllerRamp : public SpeedController
 {
 public:
 
-	SpeedControllerRamp(uint32_t channel)
+	SpeedControllerRamp(uint32_t channel, float accelerationDamping=4.0f)
 		:m_motorController(channel),
 		m_targetSpeed(0.0f),
-		m_currentSpeed(0.0f)
+		m_currentSpeed(0.0f),
+		m_accelerationDamping(accelerationDamping)
 	{
 		m_command = new SpeedControllerRampCommand(this);
 		m_command->Start();
@@ -877,12 +878,13 @@ private:
 
 	void Update()
 	{
-		m_currentSpeed = Math::Lerp(m_currentSpeed, m_targetSpeed, 0.06f);
+		m_currentSpeed = Math::Lerp(m_currentSpeed, m_targetSpeed, 0.06f*m_accelerationDamping);
 		m_motorController.Set(m_currentSpeed);
 	}
 
 	float m_targetSpeed;
 	float m_currentSpeed;
+	float m_accelerationDamping;
 
 	class SpeedControllerRampCommand : public Command
 	{
