@@ -426,11 +426,11 @@ public:
 	static const int Y_BUTTON = 3;
 
 	XboxController(uint32_t port)
-		:Joystick(port)
+		:GameController(port)
 	{}
 
 	XboxController(uint32_t port, uint32_t numAxisTypes, uint32_t numButtonTypes)
-		:Joystick(port, numAxisTypes, numButtonTypes)
+		:GameController(port, numAxisTypes, numButtonTypes)
 	{}
 
 	virtual bool GetLeftTrigger()
@@ -555,11 +555,11 @@ public:
 	static const int Y_BUTTON = 4;
 
 	LogitechF310Controller(uint32_t port)
-		:Joystick(port)
+		:GameController(port)
 	{}
 
 	LogitechF310Controller(uint32_t port, uint32_t numAxisTypes, uint32_t numButtonTypes)
-		:Joystick(port, numAxisTypes, numButtonTypes)
+		:GameController(port, numAxisTypes, numButtonTypes)
 	{}
 
 	virtual bool GetLeftTrigger()
@@ -663,60 +663,6 @@ public:
 	}
 };
 
-///@brief Interface for creating joysticks of different types.
-class JoystickCreator : public NamedSendable
-{
-public:
-
-	virtual std::string GetName() = 0;
-
-	///@brief Creates the joystick type that this JoystickCreator is setup for.
-	virtual Joystick* CreateJoystick(unsigned int portNumber) = 0;
-};
-
-///@brief Template implementation of JoystickCreator for creating Joystick objects of whatever type.
-template <typename T>
-class JoystickTypeCreator : public IJoystickCreator
-{
-public:
-
-	virtual std::string GetName()
-	{
-		return sd::string(typeid(T).name);
-	}
-
-	virtual Joystick* CreateJoystick(unsigned int portNumber)
-	{
-		return new T(portNumber);
-	}
-};
-
-///@brief Allows selection of different joystick types.
-class JoystickSelector
-{
-public:
-
-	///@brief Creates a joystick selection SendableChooser that can be used to choose what kind of Joystick will be used.
-	template <int N>
-	static SendableChooser* create(const std::string& name, JoystickCreator* factories[N])
-	{
-		SendableChooser* chooser = new SendableChooser();
-		if (N > 0)
-		{
-			chooser->AddDefault(factories[0]->GetName(), factories[0]);
-		}
-
-		//The default has already been added from index 0, so fill the array with the rest of them.
-		for (int i = 1; i < N; ++i)
-		{
-			chooser->AddObject(factories[i]->GetName(), factories[i]);
-		}
-
-		SmartDashboard::PutData(name, chooser);
-		return chooser;
-	}
-};
-
 ///@brief Wraps options for controllers, such as whether or not the Y axis should be inverted, axis sensitivity, etc.
 class ControllerOptions
 {
@@ -725,13 +671,17 @@ public:
 	///@return Whether or not the controller in the assigned port should have its Y axis inverted.
 	static bool InvertY(unsigned int controllerNum)
 	{
-		return Preferences::GetInstance()->GetBoolean("Controller " + itoa(controllerNum) + "Invert Y");
+		char controllerString[255];
+		sprintf(controllerString, "Controller %d Invert Y", controllerNum);
+		return Preferences::GetInstance()->GetBoolean(controllerString);
 	}
 
 	///@return The sensitivity value for the controller at the specified port.
 	static float Sensitivity(unsigned int controllerNum)
 	{
-		return Preferences::GetInstance()->GetFloat("Controller " + itoa(controllerNum) + "Sensitivity", 1.0f);
+		char controllerString[255];
+		sprintf(controllerString, "Controller %d Sensitivity", controllerNum);
+		return Preferences::GetInstance()->GetFloat(controllerString, 1.0f);
 	}
 };
 
