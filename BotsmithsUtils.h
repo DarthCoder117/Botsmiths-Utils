@@ -11,6 +11,7 @@
 //	*Distance Measurement
 //	*Controllers/Joysticks
 //	*IR Proximity Sensors
+//	*Motors
 //
 //==========================================================================================================================================
 #ifndef BOTSMITHS_UTILS_H
@@ -254,6 +255,7 @@ public:
 
 	~MovementTracker()
 	{
+		StopTracking();
 		delete m_command;
 	}
 
@@ -825,6 +827,92 @@ protected:
 	
 	float m_maxVoltage;
 	float m_minVoltage;
+};
+
+//==========================================================================================================================================
+//Motors
+//==========================================================================================================================================
+
+template <typename T>
+class SpeedControllerRamp : public SpeedController
+{
+public:
+
+	SpeedControllerRamp(uint32_t channel)
+		:m_motorController(channel),
+		m_targetSpeed(0.0f),
+		m_currentSpeed(0.0f)
+	{
+		m_command = new SpeedControllerRampCommand(this);
+		m_command->Start();
+	}
+
+	virtual ~SpeedControllerRamp()
+	{
+		m_command->Cancel();
+		delete m_command;
+	}
+
+	virtual void Set(float value, uint8_t syncGroup = 0)
+	{
+		m_targetSpeed = value;
+	}
+
+	virtual float Get()
+	{
+		return m_motorController.Get();
+	}
+
+	virtual void Disable()
+	{
+		m_motorController.Disable();
+	}
+
+	virtual void PIDWrite(float output)
+	{
+		m_motorController.PIDWrite(output);
+	}
+
+private:
+
+	void Update()
+	{
+		m_currentSpeed = Math::Lerp(m_currentSpeed, m_targetSpeed, 0.06f);
+		m_motorController.Set(m_currentSpeed);
+	}
+
+	float m_targetSpeed;
+	float m_currentSpeed;
+
+	class SpeedControllerRampCommand : public Command
+	{
+	public:
+
+		SpeedControllerRampCommand(SpeedControllerRamp* controllerRamp)
+			:m_controllerRamp(controllerRamp)
+		{}
+
+		void Initialize(){}
+
+		void Execute()
+		{
+			m_controllerRamp->Update();
+		}
+
+		bool IsFinished(){return false;}
+
+		void End(){}
+
+		void Interrupted(){}
+
+	private:
+
+		SpeedControllerRamp* m_controllerRamp;
+	};
+
+	SpeedControllerRampCommand* m_command;
+
+	T m_motorController;
 };
 
 #endif
