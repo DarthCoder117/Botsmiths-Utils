@@ -507,7 +507,7 @@ public:
 	static const int X_BUTTON = 3;
 	static const int Y_BUTTON = 4;
 
-	XboxController(uint32_t port, float deadZone = 0.1f)
+	XboxController(uint32_t port, float deadZone = 0.15f)
 		:GameController(port, deadZone)
 	{}
 
