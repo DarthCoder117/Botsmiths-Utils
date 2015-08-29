@@ -874,13 +874,15 @@ public:
 		m_motorController.PIDWrite(output);
 	}
 
-private:
-
+	///@brief Updates the motor speed values. This will be called automatically if the Scheduler is being used (used for all command based robots).
+	///If the Scheduler is not being used, then each motor must be updated individually.
 	void Update()
 	{
 		m_currentSpeed = Math::Lerp(m_currentSpeed, m_targetSpeed, 0.06f*m_accelerationDamping);
 		m_motorController.Set(m_currentSpeed);
 	}
+
+private:
 
 	float m_targetSpeed;
 	float m_currentSpeed;
