@@ -179,7 +179,7 @@ public:
 	///@brief Normalizes the vector to length 1.0
 	Vector3T& Normalize()
 	{
-		T len = length();
+		T len = Length();
 
 		x /= len;
 		y /= len;
