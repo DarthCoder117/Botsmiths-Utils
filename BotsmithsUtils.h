@@ -78,7 +78,7 @@ public:
 		y(0)
 	{}
 
-	Vector2T(T xVal, T yYval)
+	Vector2T(T xVal, T yVal)
 		:x(xVal),
 		y(yVal)
 	{}
@@ -106,7 +106,7 @@ public:
 	///@brief Normalizes the vector to length 1.0
 	Vector2T& Normalize()
 	{
-		T len = length();
+		T len = Length();
 
 		x /= len;
 		y /= len;
@@ -154,7 +154,7 @@ public:
 		z(zVal)
 	{}
 
-	Vector2T(const Vector2T& oth)
+	Vector3T(const Vector3T& oth)
 		:x(oth.x),
 		y(oth.y),
 		z(oth.z)
@@ -224,11 +224,11 @@ public:
 	MovementTracker(Accelerometer* accel)
 		:m_accel(accel),
 		m_velocityX(0.0),
-		m_distanceX(0.0),
+		m_positionX(0.0),
 		m_velocityY(0.0),
-		m_distanceY(0.0),
+		m_positionY(0.0),
 		m_velocityZ(0.0),
-		m_distanceZ(0.0)
+		m_positionZ(0.0)
 	{
 		m_command = new TrackerCommand(this);
 		m_command->Start();
@@ -348,6 +348,10 @@ class GameController : public Joystick
 {
 public:
 
+	GameController(uint32_t port)
+		:Joystick(port)
+	{}
+
 	///@return True if the left trigger button on the controller is pressed, false otherwise.
 	virtual bool GetLeftTrigger() = 0;
 	///@return True if the right trigger button on the controller is pressed, false otherwise.
@@ -397,7 +401,7 @@ public:
 	///@return True if the B button (Xbox controller layout) is pressed, false otherwise. Equivalent to Circle button on a PlayStation controller. 
 	virtual bool GetBButton() = 0;
 	///@return True if the X button (Xbox controller layout) is pressed, false otherwise. Equivalent to Square button on a PlayStation controller. 
-	virtual bool GetXButton() = 0
+	virtual bool GetXButton() = 0;
 	///@return True if the Y button (Xbox controller layout) is pressed, false otherwise. Equivalent to Triangle button on a PlayStation controller. 
 	virtual bool GetYButton() = 0;
 
@@ -439,10 +443,6 @@ public:
 
 	XboxController(uint32_t port)
 		:GameController(port)
-	{}
-
-	XboxController(uint32_t port, uint32_t numAxisTypes, uint32_t numButtonTypes)
-		:GameController(port, numAxisTypes, numButtonTypes)
 	{}
 
 	virtual bool GetLeftTrigger()
@@ -568,10 +568,6 @@ public:
 
 	LogitechF310Controller(uint32_t port)
 		:GameController(port)
-	{}
-
-	LogitechF310Controller(uint32_t port, uint32_t numAxisTypes, uint32_t numButtonTypes)
-		:GameController(port, numAxisTypes, numButtonTypes)
 	{}
 
 	virtual bool GetLeftTrigger()
@@ -702,7 +698,7 @@ public:
 //==========================================================================================================================================
 
 ///@brief Proximity sensor interface for Sharp infrared proximity sensors.
-class ProximitySensor : public PIDSource
+/*class ProximitySensor : public PIDSource
 {
 public:
 	
@@ -716,7 +712,7 @@ public:
 	
 	virtual double PIDGet(){return GetDistance();}
 };
-
+*/
 ///@brief Infrared Proximity Sensor - Sharp GP2Y0A21YK 
 ///https://www.sparkfun.com/products/242
 template <int LOOKUP_TABLE_SIZE>
@@ -731,11 +727,13 @@ public:
 	{
 		
 	}
+
+	virtual ~ProximitySensor(){}
 	
 	///@return The distance in front of the range finder.
 	float GetDistance()
 	{
-		float voltage = m_analogInput->GetVoltage();
+		float voltage = m_analogInput.GetVoltage();
 		voltage = Math::Normalize(voltage, m_minVoltage, m_maxVoltage);//Normalize the voltage to a usable value.
 		
 		int lookupIdxLow = std::floor(voltage*(float)LOOKUP_TABLE_SIZE);
@@ -748,7 +746,7 @@ public:
 		float resultHigh = m_rangeLookup(lookupIdxHigh);
 		
 		//Interpolate between underestimate and overestimate
-		float result = Math::Lerp(resultLow, resultHigh, (voltage*((float)LOOKUP_TABLE_SIZE-(float)lookupIdxLow));
+		float result = Math::Lerp(resultLow, resultHigh, (voltage*((float)LOOKUP_TABLE_SIZE-(float)lookupIdxLow)));
 		
 		return result;
 	}
