@@ -749,6 +749,12 @@ public:
 	{
 		char controllerString[255];
 		sprintf(controllerString, "Controller %d Invert Y", controllerNum);
+
+		if (!Preferences::GetInstance()->Contains(controllerString))
+		{
+			Preferences::GetInstance()->PutBoolean(controllerString, false);
+		}
+
 		return Preferences::GetInstance()->GetBoolean(controllerString);
 	}
 
@@ -757,6 +763,12 @@ public:
 	{
 		char controllerString[255];
 		sprintf(controllerString, "Controller %d Sensitivity", controllerNum);
+
+		if (!Preferences::GetInstance()->Contains(controllerString))
+		{
+			Preferences::GetInstance()->PutFloat(controllerString, 1.0f);
+		}
+
 		return Preferences::GetInstance()->GetFloat(controllerString, 1.0f);
 	}
 };
